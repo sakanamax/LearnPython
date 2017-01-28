@@ -3,7 +3,7 @@
 # 所以 python3 內的寫法, 如果要使用 a = range(5)來列出 list 0 - 4, 應該是 print( list(a) )
 # 所以將程式碼改為
 # 註解寫了中文在 python 好像就會產生 error, 先無視他吧
-a = list( range(5) )
+a = list( range(4) )
 #print( a )
 #print( list(a) )
 

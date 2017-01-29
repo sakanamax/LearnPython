@@ -5,7 +5,9 @@
 
 Chapter 4 -
 
-
+Notes:
+ * Python 台灣社群 http://python.org.tw/
+ * Python Taiwan FB https://www.facebook.com/groups/pythontw/
 
 --------------------------------------
 

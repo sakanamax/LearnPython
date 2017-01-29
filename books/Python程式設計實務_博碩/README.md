@@ -3,7 +3,7 @@
 
 20170129
 
-Chapter 4 -
+Chapter 4 - Chapter 4 finish
 
 Notes:
  * Python 台灣社群 http://python.org.tw/

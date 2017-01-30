@@ -1,6 +1,17 @@
 
 --------------------------------------
 
+20170130
+
+Chapter 5 ~ Chapter 5-11
+
+Notes:
+ * jupyter 部份使用 docker image
+ * 進行 jupyterhub with openSUSE Leap 42.2 容器化
+ * 5-1.py
+
+--------------------------------------
+
 20170129
 
 Chapter 4 - Chapter 4 finish

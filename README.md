@@ -15,3 +15,9 @@ notebook/ - 練習 python 的 jupyter notebook
 
 pratice_code_with_codecademy/ - Codecademy python 的練習程式
 
+aws/ - 跟AWS 有關的練習
+
+azure/ - 跟 Azure 有關的練習
+
+gcp/ - 跟 gcp 有關的練習
+

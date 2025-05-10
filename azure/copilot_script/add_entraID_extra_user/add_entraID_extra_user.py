@@ -36,17 +36,9 @@ def invite_user(access_token, email, display_name, redirect_url):
         'invitedUserDisplayName': display_name,     # 被邀請者顯示名稱
         'sendInvitationMessage': True               # 發送邀請郵件
     }
-    try:
-        response = requests.post(url, headers=headers, json=payload)  # 發送POST請求以邀請用戶
-        print(f"Status Code: {response.status_code}")
-        if response.status_code != 200 and response.status_code != 201:
-            print(f"Error details: {response.text}")
-        response.raise_for_status()  # 如果請求失敗，拋出異常
-        return response.json()  # 返回邀請操作的結果
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error: {e}")
-        print(f"Response details: {e.response.text}")
-        raise
+    response = requests.post(url, headers=headers, json=payload)  # 發送POST請求以邀請用戶
+    response.raise_for_status()  # 如果請求失敗，拋出異常
+    return response.json()  # 返回邀請操作的結果
 
 # 從文件批量邀請用戶的函數
 def invite_users_from_file(tenant_id, client_id, client_secret, filename, redirect_url):
@@ -72,71 +64,31 @@ def invite_users_from_file(tenant_id, client_id, client_secret, filename, redire
 
 # 配置參數
 filename = 'users.csv'  # CSV文件路徑
-redirect_url = 'https://portal.azure.com/'  # 重定向URL - 使用Azure入口網站作為重定向
-
-# 定義獲取用戶ID的函數
-def get_user_id(access_token, email):
-    url = f"https://graph.microsoft.com/v1.0/users?$filter=mail eq '{email}' or userPrincipalName eq '{email}'"
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json'
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        users = response.json().get('value', [])
-        if users:
-            return users[0].get('id')
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f"Error getting user ID for {email}: {e}")
-        return None
-
-# 定義將用戶ID寫入CSV的函數
-def save_user_ids_to_csv(results, output_filename='invited_users_with_ids.csv'):
-    # 獲取新的訪問令牌
-    access_token = get_access_token(tenant_id, client_id, client_secret)
-    
-    with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['user_id', 'display_name'])  # 寫入標題行
-        
-        for result in results:
-            if 'invitedUser' in result:
-                invited_user = result['invitedUser']
-                email = result.get('invitedUserEmailAddress', '')
-                display_name = invited_user.get('displayName', '')
-                
-                print(f"Getting ID for {email}...")
-                
-                # 嘗試獲取用戶ID
-                user_id = None
-                if 'id' in invited_user:
-                    user_id = invited_user['id']
-                else:
-                    # 如果邀請響應中沒有ID，嘗試使用Graph API獲取
-                    import time
-                    time.sleep(2)  # 等待2秒，讓系統有時間處理邀請
-                    user_id = get_user_id(access_token, email)
-                
-                # 使用CSV中的display_name而不是API回傳的
-                original_display_name = ''
-                with open(filename, mode='r', encoding='utf-8') as infile:
-                    reader = csv.DictReader(infile)
-                    for row in reader:
-                        if row['email'] == email:
-                            original_display_name = row['display_name']
-                            break
-                
-                if user_id:
-                    writer.writerow([user_id, original_display_name])
-                    print(f"Successfully saved ID for {email}: {user_id}")
-                else:
-                    print(f"Could not get ID for {email}. They may need to accept the invitation first.")
+redirect_url = 'https://your-redirect-url.com'  # 重定向URL
 
 # 執行批量邀請
 invite_results = invite_users_from_file(tenant_id, client_id, client_secret, filename, redirect_url)
 
-# 保存用戶ID到CSV文件
-print("\n正在獲取並保存用戶ID...")
-save_user_ids_to_csv(invite_results)
+# 將邀請成功的用戶ID寫入新的CSV文件
+output_filename = 'invited_users_with_ids.csv'
+fieldnames = ['user_id', 'user_name'] # 將 display_name 改為 user_name
+
+with open(output_filename, mode='w', newline='', encoding='utf-8') as outfile:
+    writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for result in invite_results:
+        if result and 'invitedUser' in result and result['invitedUser'] is not None: # 確保 invitedUser 存在且不為 None
+            user_id_value = result['invitedUser'].get('id') if isinstance(result['invitedUser'], dict) else None
+            display_name_to_write = result.get('invitedUserDisplayName', 'N/A')
+
+            if user_id_value: # 只有在成功獲取到 user_id 時才寫入
+                 writer.writerow({
+                    'user_id': user_id_value,
+                    'user_name': display_name_to_write, # 將 display_name 改為 user_name
+                })
+        elif 'error' in result:
+            # 可以選擇性地記錄失敗的邀請
+            # print(f"Skipping write for failed invitation: {result.get('invitedUserEmailAddress', 'Unknown Email')}")
+            pass
+
+print(f"Invitation results saved to {output_filename}")
